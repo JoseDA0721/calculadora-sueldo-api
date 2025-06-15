@@ -1,0 +1,17 @@
+ktor:
+  deployment:
+    port: 8080
+    watch:
+      - classes
+      - resources
+  application:
+    modules:
+      - com.example.ApplicationKt.module
+
+# Este es el bloque de configuración para la base de datos.
+# La indentación (espacios) es crucial.
+database:
+  driver: "org.postgresql.Driver"
+  url: "jdbc:postgresql://localhost:5432/salary_calculator"
+  user: "admin"
+  password: "password123"
