@@ -1,0 +1,20 @@
+ktor:
+  deployment:
+    port: 8080
+    watch:
+      - classes
+      - resources
+  application:
+    modules:
+      - com.example.ApplicationKt.module
+
+database:
+  driver: "org.postgresql.Driver"
+  url: "jdbc:postgresql://postgres:5432/salary_calculator"
+  user: "admin"
+  password: "password123"
+
+bot:
+  token: "7714654010:AAGxfHUcj0vHTBJntUGQAxiIMV9ABJwBNM8"
+api:
+  baseUrl: "http://localhost:8080"
