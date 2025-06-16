@@ -32,7 +32,11 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-
+          
+      - name: Make gradlew executable
+        working-directory: ./calculadora-sueldo-api
+        run: chmod +x ./gradlew
+        
       - name: Run lint and tests
         working-directory: ./calculadora-sueldo-api
         run: ./gradlew check
