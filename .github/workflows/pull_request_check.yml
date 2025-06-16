@@ -8,15 +8,26 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    # --- NUEVA SECCIÓN: SERVICIOS ---
+    # Le decimos a GitHub Actions que inicie un contenedor de PostgreSQL
+    # que estará disponible durante la ejecución de este trabajo.
     services:
+      # El nombre 'postgres' es una etiqueta que usaremos para referirnos a este servicio.
       postgres:
-        image: postgres:14-alpine
-
+        # La imagen de Docker que se usará.
+        image: postgres:15-alpine
+        # Variables de entorno para configurar la base de datos del servicio.
+        # Las pruebas se conectarán usando estos datos.
         env:
-          POSTGRES_USER: admin
-          POSTGRES_PASSWORD: password123
-          POSTGRES_DB: salary_calculator
-
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+        # Mapeo de puertos. El puerto 5432 del contenedor se asignará a un puerto aleatorio
+        # en el host del runner. Lo referenciaremos más adelante.
+        ports:
+          - 5432:5432
+        # Opción para esperar a que la base de datos esté realmente lista.
+        # Comprueba que el puerto 5432 está activo antes de continuar.
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -32,11 +43,18 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          
+
       - name: Make gradlew executable
         working-directory: ./calculadora-sueldo-api
         run: chmod +x ./gradlew
-        
+
       - name: Run lint and tests
         working-directory: ./calculadora-sueldo-api
+        # --- NUEVA SECCIÓN: VARIABLES DE ENTORNO PARA LAS PRUEBAS ---
+        # Sobrescribimos la configuración de la base de datos de la aplicación
+        # para que apunte a nuestro service container.
+        env:
+          DB_URL: jdbc:postgresql://localhost:5432/testdb
+          DB_USER: testuser
+          DB_PASSWORD: testpassword
         run: ./gradlew check
