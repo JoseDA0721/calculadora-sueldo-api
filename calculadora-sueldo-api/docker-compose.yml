@@ -12,5 +12,20 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
 
+  # ↓↓↓ NUEVO SERVICIO PARA NUESTRA API ↓↓↓
+  api:
+    # Usa la imagen que construimos en el paso anterior
+    image: calculadora-sueldo-api
+    container_name: mi-api
+    # Indicamos que este servicio depende de la base de datos.
+    # Docker Compose esperará a que postgres esté listo para iniciar la api.
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    # Pasamos las variables de entorno aquí
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+    restart: unless-stopped
 volumes:
   postgres_data:

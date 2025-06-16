@@ -2,13 +2,12 @@ package com.example.db
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.server.config.*
+import io.ktor.server.config.ApplicationConfig
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object DatabaseFactory {
-
     fun init(config: ApplicationConfig) {
         // Lee la configuración de la base de datos desde application.conf
         val configDriver = config.property("database.driver").getString()
@@ -17,16 +16,17 @@ object DatabaseFactory {
         val configPassword = config.property("database.password").getString()
 
         // Crea el pool de conexiones con HikariCP
-        val hikariConfig = HikariConfig().apply {
-            driverClassName = configDriver
-            jdbcUrl = configUrl
-            username = configUser
-            password = configPassword
-            maximumPoolSize = 3
-            isAutoCommit = false
-            transactionIsolation = "TRANSACTION_REPEATABLE_READ"
-            validate()
-        }
+        val hikariConfig =
+            HikariConfig().apply {
+                driverClassName = configDriver
+                jdbcUrl = configUrl
+                username = configUser
+                password = configPassword
+                maximumPoolSize = 3
+                isAutoCommit = false
+                transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+                validate()
+            }
 
         val dataSource = HikariDataSource(hikariConfig)
 
@@ -36,9 +36,9 @@ object DatabaseFactory {
         // Crea las tablas si no existen.
         // Esto es muy útil para el desarrollo.
         transaction {
-            SchemaUtils.create(EmployeesTable, ConfigurationsTable, WorkLogsTable)
+            SchemaUtils.drop(EmployeesTable, WorkLogsTable, ConfigurationsTable, PaymentsTable)
+            SchemaUtils.create(EmployeesTable, ConfigurationsTable, WorkLogsTable, PaymentsTable)
         }
-
 
         println("Database initialized and tables created successfully.")
     }
