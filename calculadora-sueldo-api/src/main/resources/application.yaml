@@ -8,7 +8,6 @@ ktor:
     modules:
       - com.example.ApplicationKt.module
 
-# Este es el bloque de configuración para la base de datos.
 database:
   driver: "org.postgresql.Driver"
   url: "jdbc:postgresql://postgres:5432/salary_calculator"
