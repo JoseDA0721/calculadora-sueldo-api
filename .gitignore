@@ -19,13 +19,21 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# virtual machine crash logs
 hs_err_pid*
 
 # Gradle
-.gradle
+.gradle/
 build/
-!build/build.gradle
+
+# STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
 
 # IntelliJ
 .idea/
@@ -33,6 +41,17 @@ build/
 *.ipr
 *.iws
 out/
+.kotlin
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# VS Code
+.vscode/
 
 # Mac
 .DS_Store

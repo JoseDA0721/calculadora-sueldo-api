@@ -10,7 +10,7 @@ ktor:
 
 database:
   driver: "org.postgresql.Driver"
-  url: "jdbc:postgresql://localhost:5432/salary_calculator"
+  url: "jdbc:postgresql://postgres:5432/salary_calculator"
   user: "admin"
   password: "password123"
 
