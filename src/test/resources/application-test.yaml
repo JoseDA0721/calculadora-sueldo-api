@@ -8,13 +8,14 @@ ktor:
     modules:
       - com.example.ApplicationKt.module
 
+# --- Configuración de la base de datos para el entorno de CI/CD ---
 database:
   driver: "org.postgresql.Driver"
-  url: "jdbc:postgresql://postgres:5432/salary_calculator"
-  user: "admin"
-  password: "password123"
+  url: "jdbc:postgresql://localhost:5432/testdb"
+  user: "testuser"
+  password: "testpassword"
 
 bot:
-  token: "7714654010:AAGxfHUcj0vHTBJntUGQAxiIMV9ABJwBNM8"
+  token: "fake-token-for-testing"
 api:
   baseUrl: "http://localhost:8080"

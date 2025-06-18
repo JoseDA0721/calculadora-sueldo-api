@@ -12,7 +12,7 @@ class ApplicationTest {
     fun testRoot() =
         testApplication {
             environment {
-                config = ApplicationConfig("application.yaml")
+                config = ApplicationConfig("application-test.yaml")
             }
 
             client.get("/").apply {
