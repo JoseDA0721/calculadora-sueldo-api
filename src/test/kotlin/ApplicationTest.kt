@@ -12,12 +12,13 @@ class ApplicationTest {
     fun testRoot() =
         testApplication {
             environment {
-                config = MapApplicationConfig(
-                    "database.driver" to "org.postgresql.Driver",
-                    "database.url" to "jdbc:postgresql://localhost:5432/testdb",
-                    "database.user" to "testuser",
-                    "database.password" to "testpassword"
-                )
+                config =
+                    MapApplicationConfig(
+                        "database.driver" to "org.postgresql.Driver",
+                        "database.url" to "jdbc:postgresql://localhost:5432/testdb",
+                        "database.user" to "testuser",
+                        "database.password" to "testpassword",
+                    )
             }
 
             client.get("/").apply {
