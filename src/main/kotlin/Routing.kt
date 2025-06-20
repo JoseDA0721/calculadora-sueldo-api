@@ -41,9 +41,8 @@ fun Application.configureRouting() {
             call.respondText("API CORRIENDO EL PUERTO 8080", contentType = ContentType.Text.Plain)
         }
 
-        route("/api/empleado") { // SIN la barra al final
+        route("/api/empleado") {
 
-            // POST a /api/empleado
             post {
                 try {
                     val request = call.receive<NewEmployeeRequest>()
@@ -58,7 +57,6 @@ fun Application.configureRouting() {
                 }
             }
 
-            // --- Rutas que dependen de un ID, anidadas ---
             route("/{id}") {
                 // GET a /api/empleado/{id}
                 get {
@@ -75,7 +73,6 @@ fun Application.configureRouting() {
                     }
                 }
 
-                // GET a /api/empleado/{id}/summary
                 get("/summary") {
                     val id = call.parameters["id"]?.toIntOrNull()
                     val month = call.request.queryParameters["month"]?.toIntOrNull() ?: YearMonth.now().monthValue

@@ -1,12 +1,9 @@
 package com.example.services
 
-import com.example.db.ConfigurationsTable // Añade esta importación
 import com.example.db.EmployeesTable
-import com.example.db.PaymentStatus
-import com.example.db.PaymentsTable
-import com.example.db.WorkLogsTable // Añade esta importación
+import com.example.db.WorkLogsTable
 import com.example.dto.EmployeeResponse
-import com.example.dto.MonthlySummaryResponse // Añade esta importación
+import com.example.dto.MonthlySummaryResponse
 import com.example.dto.NewEmployeeRequest
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.and
@@ -29,18 +26,16 @@ class EmployeeService {
                         it[telegramChatId] = request.telegramChatId
                     }
                 }
-            // Usamos la nueva función de ayuda para mantener el código limpio
             rowToEmployee(insertStatement.resultedValues!!.first())
         }
     }
 
-    // ↓↓↓ NUEVA FUNCIÓN PÚBLICA ↓↓↓
     fun findById(id: Int): EmployeeResponse? {
         return transaction {
             EmployeesTable
                 .select { EmployeesTable.id eq id }
-                .map { rowToEmployee(it) } // Reutilizamos la función de ayuda
-                .firstOrNull() // Devuelve el primer resultado o null si no se encuentra
+                .map { rowToEmployee(it) }
+                .firstOrNull()
         }
     }
 
@@ -49,7 +44,6 @@ class EmployeeService {
         yearMonth: YearMonth,
     ): MonthlySummaryResponse? {
         return transaction {
-            // Verificamos si ya existe un registro de pago para este mes/empleado
             val existingPayment =
                 PaymentsTable
                     .select {
@@ -59,8 +53,6 @@ class EmployeeService {
                     }
                     .firstOrNull()
 
-            // Si ya existe un pago, usamos esos datos.
-            // Si no, calculamos y creamos uno nuevo.
             val hourlyRate: Double
             val totalHours: Double
             val totalSalary: Double
@@ -77,7 +69,6 @@ class EmployeeService {
                 // Por simplicidad, lo dejaremos así por ahora.
                 totalHours = 0.0 // Simplificación
             } else {
-                // La lógica de cálculo que ya teníamos
                 hourlyRate = ConfigurationsTable.select { ConfigurationsTable.key eq ConfigService.HOURLY_RATE_KEY }
                     .firstOrNull()?.get(ConfigurationsTable.value)?.toDoubleOrNull() ?: 0.0
 
@@ -89,7 +80,6 @@ class EmployeeService {
                     }.sumOf { it[WorkLogsTable.hours] }.toDouble()
                 totalSalary = totalHours * hourlyRate
 
-                // Creamos el registro de pago en la BD
                 PaymentsTable.insert {
                     it[PaymentsTable.employeeId] = employeeId
                     it[paymentMonth] = yearMonth.monthValue
@@ -110,8 +100,6 @@ class EmployeeService {
         }
     }
 
-    // ↓↓↓ NUEVA FUNCIÓN DE AYUDA PRIVADA ↓↓↓
-    // Para convertir una fila de la BD a nuestro DTO de respuesta
     private fun rowToEmployee(row: ResultRow): EmployeeResponse {
         return EmployeeResponse(
             id = row[EmployeesTable.id],

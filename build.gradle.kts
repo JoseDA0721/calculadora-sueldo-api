@@ -42,4 +42,6 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:3.2.0")
     implementation("io.ktor:ktor-client-content-negotiation:3.2.0")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:3.2.0")
+    implementation("org.flywaydb:flyway-core:11.9.1")
+    implementation ("org.flywaydb:flyway-database-postgresql")
 }

@@ -5,8 +5,10 @@ import kotlinx.serialization.Serializable
 // Datos que esperamos recibir en la solicitud JSON
 @Serializable
 data class NewEmployeeRequest(
+    val id : String,
     val firstName: String,
     val lastName: String,
+    val activiti: String,
     val email: String,
     val telegramChatId: Long? = null,
 )

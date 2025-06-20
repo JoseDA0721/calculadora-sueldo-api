@@ -1,8 +1,11 @@
-name: CI - Pull Request Check
-
+name: CI - Push and Pull Request Check
 on:
   pull_request:
     branches: [ main, develop ]
+  push:
+    branches-ignore:
+      - 'main'
+      - 'develop'
 
 jobs:
   build:
