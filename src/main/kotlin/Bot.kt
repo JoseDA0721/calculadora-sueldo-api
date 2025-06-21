@@ -1,6 +1,5 @@
 package com.example
 
-import com.example.dto.MonthlySummaryResponse
 import com.example.dto.NewWorkLogRequest
 import com.github.kotlintelegrambot.bot
 import com.github.kotlintelegrambot.dispatch

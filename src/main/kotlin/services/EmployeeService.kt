@@ -3,13 +3,15 @@ package com.example.services
 import com.example.db.EmployeesTable
 import com.example.db.WorkLogsTable
 import com.example.dto.EmployeeResponse
-import com.example.dto.MonthlySummaryResponse
 import com.example.dto.NewEmployeeRequest
+import com.example.dto.UpdateEmployeeRequest
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
@@ -19,18 +21,29 @@ class EmployeeService {
         return transaction {
             val insertStatement =
                 EmployeesTable.insert {
+                    it[id] = request.id
                     it[firstName] = request.firstName
                     it[lastName] = request.lastName
+                    it[activiti] = request.activiti
                     it[email] = request.email
-                    if (request.telegramChatId != null) {
-                        it[telegramChatId] = request.telegramChatId
-                    }
                 }
             rowToEmployee(insertStatement.resultedValues!!.first())
         }
     }
 
-    fun findById(id: Int): EmployeeResponse? {
+    fun updateEmployee(
+        id: String,
+        request: UpdateEmployeeRequest
+    ): EmployeeResponse {
+        return transaction {
+            val updateStatement = EmployeesTable.update({ EmployeesTable.id eq id }) {
+                it[userId] = request.userId
+            }
+            rowToEmployee(updateStatement.t)
+        }
+    }
+
+    fun findById(id: String): EmployeeResponse? {
         return transaction {
             EmployeesTable
                 .select { EmployeesTable.id eq id }
@@ -105,8 +118,11 @@ class EmployeeService {
             id = row[EmployeesTable.id],
             firstName = row[EmployeesTable.firstName],
             lastName = row[EmployeesTable.lastName],
+            userId = row[EmployeesTable.userId],
+            activiti = row[EmployeesTable.activiti],
+            method = row[EmployeesTable.method].toString(),
             email = row[EmployeesTable.email],
-            telegramChatId = row[EmployeesTable.telegramChatId],
+            telegramChatId = row[EmployeesTable.telegramChatId]
         )
     }
 }

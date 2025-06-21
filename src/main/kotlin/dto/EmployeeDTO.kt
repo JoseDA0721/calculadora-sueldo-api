@@ -9,16 +9,26 @@ data class NewEmployeeRequest(
     val firstName: String,
     val lastName: String,
     val activiti: String,
-    val email: String,
-    val telegramChatId: Long? = null,
+    val email: String
 )
 
-// Datos que enviaremos como respuesta JSON
+data class UpdateEmployeeRequest(
+    val userId: Int,
+    val activiti: String,
+    val method: String,
+    val email: String,
+    val telephone: String,
+    val telegramChatId: Long?
+)
+
 @Serializable
 data class EmployeeResponse(
-    val id: Int,
+    val id: String,
     val firstName: String,
     val lastName: String,
+    val userId: Int?,
+    val activiti: String,
+    val method: String,
     val email: String,
     val telegramChatId: Long?,
 )

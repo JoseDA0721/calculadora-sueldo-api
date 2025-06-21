@@ -69,7 +69,6 @@ CREATE TABLE registros_horas (
     contrato_id INT REFERENCES contratos(id),
     fecha DATE,
     horas_trabajadas DECIMAL(5,2),
-    creado_por INT REFERENCES users(id),
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

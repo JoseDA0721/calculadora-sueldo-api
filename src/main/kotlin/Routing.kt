@@ -5,7 +5,6 @@ import com.example.db.PaymentStatus
 import com.example.db.PaymentsTable
 import com.example.dto.NewEmployeeRequest
 import com.example.dto.NewWorkLogRequest
-import com.example.dto.UpdateHourlyRateRequest
 import com.example.services.ConfigService
 import com.example.services.EmployeeService
 import com.example.services.NotificationService

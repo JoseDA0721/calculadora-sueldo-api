@@ -34,6 +34,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:0.45.0")
     implementation("org.jetbrains.exposed:exposed-jdbc:0.45.0")
     implementation("org.jetbrains.exposed:exposed-java-time:0.45.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
     implementation("org.postgresql:postgresql:42.5.0")
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("io.ktor:ktor-server-config-yaml:3.2.0")
