@@ -6,9 +6,8 @@ import kotlinx.serialization.Serializable
 // Datos que esperamos recibir para registrar horas
 @Serializable
 data class NewWorkLogRequest(
-    val contractId: Int,
-    val date: LocalDate,
-    val hoursWorked: Double
+    val employeeId: String,
+    val hoursWorked: Double,
 )
 
 // Datos que devolveremos como respuesta
@@ -17,5 +16,5 @@ data class WorkLogResponse(
     val id: Int,
     val contractId: Int,
     val date: LocalDate,
-    val hoursWorked: Double
+    val hoursWorked: Double,
 )

@@ -8,7 +8,7 @@ data class NewDiscountRequest(
     val contracId: Int,
     val description: String,
     val amount: Double,
-    val date: LocalDate
+    val date: LocalDate,
 )
 
 @Serializable
@@ -17,5 +17,5 @@ data class DiscountResponse(
     val contractId: Int,
     val description: String,
     val amount: Double,
-    val date: LocalDate
+    val date: LocalDate,
 )

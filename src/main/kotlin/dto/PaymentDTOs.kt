@@ -1,7 +1,8 @@
 package com.example.dto
 
-import kotlinx.serialization.Serializable
+import com.example.db.StatusPayment
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.Serializable
 
 @Serializable
 data class NewPayment(
@@ -9,7 +10,6 @@ data class NewPayment(
     val salaryBase: Double,
     val discounts: Double,
     val total: Double,
-    val paymentDate: LocalDate
 )
 
 data class UpdatePayment(
@@ -17,12 +17,13 @@ data class UpdatePayment(
     val status: String,
 )
 
+@Serializable
 data class PaymentResponse(
     val id: Int,
     val requestId: Int,
     val salaryBase: Double,
     val discounts: Double,
     val total: Double,
-    val status: String,
-    val paymentDate: LocalDate
+    val status: StatusPayment,
+    val paymentDate: LocalDate,
 )

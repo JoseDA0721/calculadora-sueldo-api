@@ -8,7 +8,7 @@ data class NewStats(
     val period: String,
     val totalHours: Double,
     val netSalary: Double,
-    val totalDiscount: Double
+    val totalDiscount: Double,
 )
 
 @Serializable
@@ -18,5 +18,5 @@ data class Stats(
     val period: String,
     val totalHours: Double,
     val netSalary: Double,
-    val totalDiscount: Double
+    val totalDiscount: Double,
 )

@@ -25,6 +25,7 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation")
     implementation("io.ktor:ktor-serialization-kotlinx-json")
     implementation("io.ktor:ktor-server-netty")
+    implementation("org.mindrot:jbcrypt:0.4")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("io.ktor:ktor-server-config-yaml")
     testImplementation("io.ktor:ktor-server-test-host")
@@ -43,6 +44,6 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:3.2.0")
     implementation("io.ktor:ktor-client-content-negotiation:3.2.0")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:3.2.0")
-    implementation("org.flywaydb:flyway-core:11.9.1")
-    implementation ("org.flywaydb:flyway-database-postgresql")
+    implementation("org.flywaydb:flyway-core:10.15.0")
+    implementation("org.flywaydb:flyway-database-postgresql:10.15.0")
 }

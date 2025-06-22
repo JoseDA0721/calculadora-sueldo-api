@@ -3,8 +3,8 @@ package com.example.db
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.server.config.ApplicationConfig
-import org.jetbrains.exposed.sql.Database
 import org.flywaydb.core.Flyway
+import org.jetbrains.exposed.sql.Database
 
 object DatabaseFactory {
     fun init(config: ApplicationConfig) {
@@ -31,9 +31,10 @@ object DatabaseFactory {
 
         Database.connect(dataSource)
 
-        val flyway = Flyway.configure()
-            .dataSource(dataSource)
-            .load()
+        val flyway =
+            Flyway.configure()
+                .dataSource(dataSource)
+                .load()
 
         flyway.migrate()
 
