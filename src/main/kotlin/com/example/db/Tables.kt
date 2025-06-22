@@ -28,35 +28,36 @@ object RolesAllowsTable : Table("roles_permisos") {
 
 object UsersTable : Table("usuarios") {
     val id = integer(name = "id").autoIncrement()
-    val roleId = integer(name = "rol_id").autoIncrement() references RolesTable.id
+    val roleId = integer(name = "rol_id") references RolesTable.id
     val name = varchar("user_name", 100)
-    val email = varchar("email", 100).uniqueIndex()
     val password = varchar("password", 100)
     val createdAt = timestamp("creado_en").default(Instant.now())
     override val primaryKey = PrimaryKey(id)
 }
 
-enum class PaymentMethods { efectico, transferencia }
+enum class PaymentMethods { EFECTIVO, TRANSFERENCIA }
+
 object EmployeesTable : Table("trabajadores") {
     val id = varchar("id", 10)
     val firstName = varchar("nombre", 255)
-    val lastName = varchar("aplellido", 255)
+    val lastName = varchar("apellido", 255)
     val userId = integer("user_id").uniqueIndex() references UsersTable.id
-    val activiti = varchar("actividad", 100)
-    val metodo = enumerationByName("metodo", 20, PaymentMethods::class).default(PaymentMethods.transferencia)
+    val activity = varchar("actividad", 100)
+    val method = enumerationByName("metodo", 20, PaymentMethods::class).default(PaymentMethods.TRANSFERENCIA)
     val email = varchar("email", 255).uniqueIndex()
+    val telephone = varchar("telefono", 10).uniqueIndex()
     val telegramChatId = long("telegram_chat_id")
     val createdAt = timestamp("created_at").default(Instant.now())
     override val primaryKey = PrimaryKey(id)
 }
 
-object ContractsTable : Table("contractos") {
+object ContractsTable : Table("contratos") {
     val id = integer("id").autoIncrement()
     val employeeId = varchar("trabajador_id", 10) references EmployeesTable.id
-    val hourlyRate = decimal("tarifa_hora", 2, 10)
-    val startDate = timestamp("fecha_inicio")
-    val endDate = timestamp("fecha_fin")
-    val active = bool("active").default(true)
+    val hourlyRate = decimal("tarifa_hora", 10, 2)
+    val startDate = date("fecha_inicio")
+    val endDate = date("fecha_fin")
+    val active = bool("activo").default(true)
     val createdAt = timestamp("creado_en").default(Instant.now())
     override val primaryKey = PrimaryKey(id)
 }
@@ -65,8 +66,7 @@ object WorkLogsTable : Table("registros_horas") {
     val id = integer("id").autoIncrement()
     val contractId = integer(name = "contrato_id") references ContractsTable.id
     val date = date("fecha")
-    val hoursWorked = decimal("hours", 2, 5)
-    val createBy = integer("creado_por") references UsersTable.id
+    val hoursWorked = decimal("horas_trabajadas", 10, 2)
     val createdAt = timestamp("creado_en").default(Instant.now())
     override val primaryKey = PrimaryKey(id)
 }
@@ -75,56 +75,56 @@ object DiscountsTable : Table("descuentos") {
     val id = integer("id").autoIncrement()
     val contractId = integer(name = "contrato_id") references ContractsTable.id
     val description = text("descripcion")
-    val amount = decimal("amount", 2, 10)
+    val amount = decimal("amount", 10, 2)
     val date = date("fecha")
     val createdAt = timestamp("creado_en").default(Instant.now())
     override val primaryKey = PrimaryKey(id)
 }
 
+enum class StatusRequestPayment { PENDIENTE, APROBADA, RECHAZADA }
 
-enum class StatusRequestPayment { pendiente, aprobada, rechazada }
 object PaymentRequestsTable : Table("solicitudes_pago") {
     val id = integer("id").autoIncrement()
     val contractId = integer(name = "contrato_id") references ContractsTable.id
     val period = varchar("periodo", 7)
-    val status = enumerationByName("status", 20, StatusRequestPayment::class).default(StatusRequestPayment.pendiente)
-    val dateRequest = date("fecha")
+    val status = enumerationByName("estado", 20, StatusRequestPayment::class).default(StatusRequestPayment.PENDIENTE)
+    val dateRequest = date("fecha_solicitud")
     val reviewBy = integer("revisado_por") references UsersTable.id
     val observation = text("observacion")
     val createdAt = timestamp("creado_en").default(Instant.now())
     override val primaryKey = PrimaryKey(id)
 }
 
-enum class StatusPayment { en_proceso, pagado }
-object Payment : Table("pagos") {
+enum class StatusPayment { EN_PROCESO, PAGADO }
+
+object PaymentTable : Table("pagos") {
     val id = integer("id").autoIncrement()
-    val requestId = integer(name = "") references PaymentRequestsTable.id
-    val salaryBase = decimal("sueldo_base", 2, 10)
-    val discounts = decimal("discuentos", 2, 10)
-    val total = decimal("total", 2, 10)
-    val status = enumerationByName("status", 20, StatusPayment::class).default(StatusPayment.en_proceso)
+    val requestId = integer(name = "solicitud_id").uniqueIndex() references PaymentRequestsTable.id
+    val salaryBase = decimal("sueldo_base", 10, 2)
+    val discounts = decimal("discuentos", 10, 2)
+    val total = decimal("total", 10, 2)
+    val status = enumerationByName("estado", 20, StatusPayment::class).default(StatusPayment.EN_PROCESO)
     val paymentDate = date("fecha_pago")
     val createdAt = timestamp("creado_en").default(Instant.now())
     override val primaryKey = PrimaryKey(id)
 }
 
-object Notifications : Table("notificaciones") {
+object NotificationsTable : Table("notificaciones") {
     val id = integer("id").autoIncrement()
     val userId = integer("user_id") references UsersTable.id
     val message = text("mensaje")
     val read = bool("leido").default(false)
     val date = date("fecha")
-    override val primaryKey = PrimaryKey(userId)
-}
-
-object StatsMonthly : Table("metricas_mensuales"){
-    val id = integer("id").autoIncrement()
-    val contractId = integer(name = "contrato_id") references ContractsTable.id
-    val period = varchar("periodo", 7)
-    val totalHours = decimal("total_horas", 2, 10)
-    val netSalary = decimal("sueldo_neto", 2, 10)
-    val totalDiscount = decimal("total_discuento", 2, 10)
-    val generatedAt = timestamp("generado_en").default(Instant.now())
     override val primaryKey = PrimaryKey(id)
 }
 
+object StatsMonthlyTable : Table("metricas_mensuales") {
+    val id = integer("id").autoIncrement()
+    val contractId = integer(name = "contrato_id") references ContractsTable.id
+    val period = varchar("periodo", 7)
+    val totalHours = decimal("total_horas", 10, 2)
+    val netSalary = decimal("sueldo_neto", 10, 2)
+    val totalDiscount = decimal("total_discuento", 10, 2)
+    val generatedAt = timestamp("generado_en").default(Instant.now())
+    override val primaryKey = PrimaryKey(id)
+}
