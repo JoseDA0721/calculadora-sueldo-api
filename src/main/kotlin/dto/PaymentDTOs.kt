@@ -12,9 +12,20 @@ data class NewPayment(
     val total: Double,
 )
 
+@Serializable
 data class UpdatePayment(
     val id: String,
     val status: String,
+)
+
+@Serializable
+data class EstimatedSalaryResponse(
+    val period: String,
+    val hourlyRate: Double,
+    val totalHours: Double,
+    val baseSalary: Double,
+    val totalDiscounts: Double,
+    val estimatedNetSalary: Double,
 )
 
 @Serializable

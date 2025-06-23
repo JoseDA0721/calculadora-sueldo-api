@@ -15,6 +15,15 @@ application {
     mainClass = "io.ktor.server.netty.EngineMain"
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions.jvmTarget = "17"
+}
+
 repositories {
     mavenCentral()
     maven { url = uri("https://jitpack.io") }

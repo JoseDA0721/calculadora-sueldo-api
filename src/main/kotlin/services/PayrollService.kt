@@ -3,10 +3,13 @@ package com.example.services
 import com.example.db.ContractsTable
 import com.example.db.PaymentRequestsTable
 import com.example.db.PaymentTable
+import com.example.db.StatusPayment
 import com.example.db.StatusRequestPayment
+import com.example.dto.EstimatedSalaryResponse
 import com.example.dto.NewPaymentRequest
 import com.example.dto.PaymentRequestResponse
 import com.example.dto.PaymentResponse
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.toKotlinLocalDate
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.and
@@ -16,7 +19,12 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.time.LocalDate
 
-class PayrollService(private val contractService: ContractService, private val workLogService: WorkLogService) {
+class PayrollService(
+    private val contractService: ContractService,
+    private val workLogService: WorkLogService,
+    private val employeeService: EmployeeService,
+    private val notificationService: NotificationService,
+) {
     fun createPaymentRequest(request: NewPaymentRequest): PaymentRequestResponse {
         return transaction {
             val contractID =
@@ -70,6 +78,98 @@ class PayrollService(private val contractService: ContractService, private val w
                 it[reviewBy] = 1
             }
             newPayment?.let { rowToPaymentResponse(it) }
+        }
+    }
+
+    fun executePayment(paymentId: Int): PaymentResponse? {
+        return transaction {
+            val payment =
+                PaymentTable
+                    .select { PaymentTable.id eq paymentId }
+                    .firstOrNull() ?: return@transaction null
+
+            if (payment[PaymentTable.status] != StatusPayment.EN_PROCESO) {
+                return@transaction null
+            }
+
+            PaymentTable.update({ PaymentTable.id eq paymentId }) {
+                it[status] = StatusPayment.PAGADO
+                it[paymentDate] = java.time.LocalDate.now()
+            }
+
+            val updatedPayment = PaymentTable.select { PaymentTable.id eq paymentId }.first()
+            val paymentResponse = rowToPaymentResponse(updatedPayment)
+
+            val requestId = updatedPayment[PaymentTable.requestId]
+            val contractId =
+                PaymentRequestsTable
+                    .slice(PaymentRequestsTable.contractId)
+                    .select { PaymentRequestsTable.id eq requestId }
+                    .first()[PaymentRequestsTable.contractId]
+
+            val employeeId =
+                ContractsTable
+                    .slice(ContractsTable.employeeId)
+                    .select { ContractsTable.id eq contractId }
+                    .first()[ContractsTable.employeeId]
+
+            val employee = employeeService.findById(employeeId)
+
+            if (employee != null && employee.telegramChatId != 0L) {
+                runBlocking {
+                    notificationService.sendPaymentNotification(
+                        chatId = employee.telegramChatId,
+                        amount = paymentResponse.total,
+                    )
+                }
+            }
+
+            paymentResponse
+        }
+    }
+
+    fun calculateEstimatedSalary(
+        employeeId: String,
+        period: String,
+    ): EstimatedSalaryResponse {
+        return transaction {
+            val activeContract =
+                contractService.getContractForEmployee(employeeId)
+                    ?: throw Exception("No se encontró un contrato activo para el empleado.")
+
+            val totalHours = workLogService.getTotalHoursForPeriod(activeContract.id, period)
+
+            val totalDiscounts = 0.0
+
+            val hourlyRate = activeContract.hourlyRate
+            val baseSalary = totalHours * hourlyRate
+            val estimatedNetSalary = baseSalary - totalDiscounts
+
+            EstimatedSalaryResponse(
+                period = period,
+                hourlyRate = hourlyRate,
+                totalHours = totalHours,
+                baseSalary = baseSalary,
+                totalDiscounts = totalDiscounts,
+                estimatedNetSalary = estimatedNetSalary,
+            )
+        }
+    }
+
+    fun getPaymentRequestStatus(
+        employeeId: String,
+        period: String,
+    ): PaymentRequestResponse? {
+        return transaction {
+            PaymentRequestsTable
+                .join(ContractsTable, org.jetbrains.exposed.sql.JoinType.INNER, additionalConstraint = {
+                    PaymentRequestsTable.contractId eq ContractsTable.id
+                })
+                .select {
+                    (ContractsTable.employeeId eq employeeId) and (PaymentRequestsTable.period eq period)
+                }
+                .map { rowToPaymentRequestResponse(it) }
+                .firstOrNull()
         }
     }
 

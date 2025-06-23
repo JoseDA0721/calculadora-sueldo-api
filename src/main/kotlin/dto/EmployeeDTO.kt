@@ -14,6 +14,7 @@ data class NewEmployeeRequest(
     val method: PaymentMethods? = PaymentMethods.TRANSFERENCIA,
 )
 
+@Serializable
 data class UpdateEmployeeRequest(
     val activity: String? = null,
     val method: PaymentMethods? = PaymentMethods.TRANSFERENCIA,
