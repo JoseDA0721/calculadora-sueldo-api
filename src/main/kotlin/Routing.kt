@@ -221,13 +221,13 @@ fun Application.configureRouting() {
                         call.respond(
                             HttpStatusCode.Conflict,
                             "El pago no pudo ser procesado. " +
-                                "Puede que ya haya sido pagado o no exista."
+                                "Puede que ya haya sido pagado o no exista.",
                         )
                     }
                 } catch (e: Exception) {
                     call.respond(
                         HttpStatusCode.InternalServerError,
-                        "Ocurrió un error: ${e.message}"
+                        "Ocurrió un error: ${e.message}",
                     )
                 }
             }

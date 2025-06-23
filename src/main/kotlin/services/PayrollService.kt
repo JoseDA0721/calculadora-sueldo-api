@@ -9,6 +9,7 @@ import com.example.dto.EstimatedSalaryResponse
 import com.example.dto.NewPaymentRequest
 import com.example.dto.PaymentRequestResponse
 import com.example.dto.PaymentResponse
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.toKotlinLocalDate
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.and
@@ -17,7 +18,6 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.time.LocalDate
-import kotlinx.coroutines.runBlocking
 
 class PayrollService(
     private val contractService: ContractService,
@@ -83,9 +83,10 @@ class PayrollService(
 
     fun executePayment(paymentId: Int): PaymentResponse? {
         return transaction {
-            val payment = PaymentTable
-                .select { PaymentTable.id eq paymentId }
-                .firstOrNull() ?: return@transaction null
+            val payment =
+                PaymentTable
+                    .select { PaymentTable.id eq paymentId }
+                    .firstOrNull() ?: return@transaction null
 
             if (payment[PaymentTable.status] != StatusPayment.EN_PROCESO) {
                 return@transaction null
@@ -100,15 +101,17 @@ class PayrollService(
             val paymentResponse = rowToPaymentResponse(updatedPayment)
 
             val requestId = updatedPayment[PaymentTable.requestId]
-            val contractId = PaymentRequestsTable
-                .slice(PaymentRequestsTable.contractId)
-                .select { PaymentRequestsTable.id eq requestId }
-                .first()[PaymentRequestsTable.contractId]
+            val contractId =
+                PaymentRequestsTable
+                    .slice(PaymentRequestsTable.contractId)
+                    .select { PaymentRequestsTable.id eq requestId }
+                    .first()[PaymentRequestsTable.contractId]
 
-            val employeeId = ContractsTable
-                .slice(ContractsTable.employeeId)
-                .select { ContractsTable.id eq contractId }
-                .first()[ContractsTable.employeeId]
+            val employeeId =
+                ContractsTable
+                    .slice(ContractsTable.employeeId)
+                    .select { ContractsTable.id eq contractId }
+                    .first()[ContractsTable.employeeId]
 
             val employee = employeeService.findById(employeeId)
 
@@ -116,7 +119,7 @@ class PayrollService(
                 runBlocking {
                     notificationService.sendPaymentNotification(
                         chatId = employee.telegramChatId,
-                        amount = paymentResponse.total
+                        amount = paymentResponse.total,
                     )
                 }
             }
