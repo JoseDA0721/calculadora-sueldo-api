@@ -45,15 +45,14 @@ class EmployeeService {
         request: UpdateEmployeeRequest,
     ): EmployeeResponse? {
         return transaction {
-            val updateStatement =
-                EmployeesTable.update({ EmployeesTable.id eq id }) {
-                        statements ->
-                    request.activity?.let { newActivity -> statements[activity] = newActivity }
-                    request.method?.let { newMethod -> statements[method] = newMethod }
-                    request.email?.let { newEmail -> statements[email] = newEmail }
-                    request.telephone?.let { newTelephone -> statements[telephone] = newTelephone }
-                    request.telegramChatId?.let { newTelegramChatId -> statements[telegramChatId] = newTelegramChatId }
-                }
+            EmployeesTable.update({ EmployeesTable.id eq id }) {
+                    statements ->
+                request.activity?.let { newActivity -> statements[activity] = newActivity }
+                request.method?.let { newMethod -> statements[method] = newMethod }
+                request.email?.let { newEmail -> statements[email] = newEmail }
+                request.telephone?.let { newTelephone -> statements[telephone] = newTelephone }
+                request.telegramChatId?.let { newTelegramChatId -> statements[telegramChatId] = newTelegramChatId }
+            }
             findById(id)
         }
     }
@@ -62,6 +61,15 @@ class EmployeeService {
         return transaction {
             EmployeesTable
                 .select { EmployeesTable.id eq id }
+                .map { rowToEmployee(it) }
+                .firstOrNull()
+        }
+    }
+
+    fun findByChatId(chatId: Long): EmployeeResponse? {
+        return transaction {
+            EmployeesTable
+                .select { EmployeesTable.telegramChatId eq chatId }
                 .map { rowToEmployee(it) }
                 .firstOrNull()
         }

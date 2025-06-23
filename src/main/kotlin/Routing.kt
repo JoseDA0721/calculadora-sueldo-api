@@ -50,9 +50,28 @@ fun Application.configureRouting() {
                 }
             }
 
+            route("/{chatId}") {
+                get {
+                    println(call.parameters["chatId"])
+                    val chatId = call.parameters["chatId"]?.toLongOrNull()
+                    if (chatId == null) {
+                        call.respond(HttpStatusCode.BadRequest, "Chat ID invalido")
+                        return@get
+                    }
+                    val employee = employeeService.findByChatId(chatId)
+                    println(employee)
+                    if (employee != null) {
+                        call.respond(HttpStatusCode.OK, employee)
+                    } else {
+                        call.respond(HttpStatusCode.NotFound, "No se encontró un empleado para el Chat ID proporcionado")
+                    }
+                }
+            }
+
             route("/{id}") {
                 // GET a /api/empleado/{id}
                 get {
+                    println(call.parameters["id"])
                     val id = call.parameters["id"].toString()
                     if (id == "") {
                         call.respond(HttpStatusCode.BadRequest, "El ID debe ser su cedula")
@@ -122,6 +141,33 @@ fun Application.configureRouting() {
                 }
             }
 
+            get("/status") {
+                val employeeId = call.request.queryParameters["employeeId"]
+                val period = call.request.queryParameters["period"]
+
+                println(employeeId)
+                println(period)
+
+                if (employeeId == null || period == null) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        "Faltan los parámetros 'employeeId' o 'period'.",
+                    )
+                    return@get
+                }
+
+                try {
+                    val paymentRequestStatus = payrollService.getPaymentRequestStatus(employeeId, period)
+                    if (paymentRequestStatus != null) {
+                        call.respond(HttpStatusCode.OK, paymentRequestStatus)
+                    } else {
+                        call.respond(HttpStatusCode.NotFound, "No se encontró una solicitud para ese período.")
+                    }
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, "Error: ${e.message}")
+                }
+            }
+
             patch("/{requestId}") {
                 val requestId = call.parameters["requestId"]?.toIntOrNull()
                 if (requestId == null) {
@@ -135,6 +181,25 @@ fun Application.configureRouting() {
                     call.respond(HttpStatusCode.OK, processPaymentRequest)
                 } else {
                     call.respond(HttpStatusCode.Conflict, "Hubo un error")
+                }
+            }
+        }
+
+        route("/api/payroll") {
+            get("/calculate-salary") {
+                val employeeId = call.parameters["employeeId"]
+                val period = call.parameters["period"]
+
+                if (employeeId == null || period == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Faltan los parámetros 'employeeId' o 'period'.")
+                    return@get
+                }
+
+                try {
+                    val estimatedSalary = payrollService.calculateEstimatedSalary(employeeId, period)
+                    call.respond(HttpStatusCode.OK, estimatedSalary)
+                } catch (e: PSQLException) {
+                    call.respond(HttpStatusCode.BadRequest, "ERROR: " + e.message)
                 }
             }
         }

@@ -4,6 +4,7 @@ import com.example.db.ContractsTable
 import com.example.db.PaymentRequestsTable
 import com.example.db.PaymentTable
 import com.example.db.StatusRequestPayment
+import com.example.dto.EstimatedSalaryResponse
 import com.example.dto.NewPaymentRequest
 import com.example.dto.PaymentRequestResponse
 import com.example.dto.PaymentResponse
@@ -70,6 +71,51 @@ class PayrollService(private val contractService: ContractService, private val w
                 it[reviewBy] = 1
             }
             newPayment?.let { rowToPaymentResponse(it) }
+        }
+    }
+
+    fun calculateEstimatedSalary(
+        employeeId: String,
+        period: String,
+    ): EstimatedSalaryResponse {
+        return transaction {
+            val activeContract =
+                contractService.getContractForEmployee(employeeId)
+                    ?: throw Exception("No se encontró un contrato activo para el empleado.")
+
+            val totalHours = workLogService.getTotalHoursForPeriod(activeContract.id, period)
+
+            val totalDiscounts = 0.0
+
+            val hourlyRate = activeContract.hourlyRate
+            val baseSalary = totalHours * hourlyRate
+            val estimatedNetSalary = baseSalary - totalDiscounts
+
+            EstimatedSalaryResponse(
+                period = period,
+                hourlyRate = hourlyRate,
+                totalHours = totalHours,
+                baseSalary = baseSalary,
+                totalDiscounts = totalDiscounts,
+                estimatedNetSalary = estimatedNetSalary,
+            )
+        }
+    }
+
+    fun getPaymentRequestStatus(
+        employeeId: String,
+        period: String,
+    ): PaymentRequestResponse? {
+        return transaction {
+            PaymentRequestsTable
+                .join(ContractsTable, org.jetbrains.exposed.sql.JoinType.INNER, additionalConstraint = {
+                    PaymentRequestsTable.contractId eq ContractsTable.id
+                })
+                .select {
+                    (ContractsTable.employeeId eq employeeId) and (PaymentRequestsTable.period eq period)
+                }
+                .map { rowToPaymentRequestResponse(it) }
+                .firstOrNull()
         }
     }
 
