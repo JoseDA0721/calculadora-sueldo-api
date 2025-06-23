@@ -7,6 +7,7 @@ import com.example.dto.NewWorkLogRequest
 import com.example.dto.UpdateEmployeeRequest
 import com.example.services.ContractService
 import com.example.services.EmployeeService
+import com.example.services.NotificationService
 import com.example.services.PayrollService
 import com.example.services.WorkLogService
 import io.ktor.http.ContentType
@@ -26,9 +27,9 @@ fun Application.configureRouting() {
     val employeeService = EmployeeService()
     val workLogService = WorkLogService()
     val contractService = ContractService()
-    val payrollService = PayrollService(contractService, workLogService)
-
-    // val notificationService = if (botToken != null) NotificationService(botToken) else null
+    val botToken = environment.config.property("bot.token").getString()
+    val notificationService = NotificationService(botToken)
+    val payrollService = PayrollService(contractService, workLogService, employeeService, notificationService)
 
     routing {
         get("/") {
@@ -200,6 +201,34 @@ fun Application.configureRouting() {
                     call.respond(HttpStatusCode.OK, estimatedSalary)
                 } catch (e: PSQLException) {
                     call.respond(HttpStatusCode.BadRequest, "ERROR: " + e.message)
+                }
+            }
+        }
+
+        route("/api/payments") {
+            patch("/{paymentId}/pay") {
+                val paymentId = call.parameters["paymentId"]?.toIntOrNull()
+                if (paymentId == null) {
+                    call.respond(HttpStatusCode.BadRequest, "ID de pago inválido.")
+                    return@patch
+                }
+
+                try {
+                    val paidPayment = payrollService.executePayment(paymentId)
+                    if (paidPayment != null) {
+                        call.respond(HttpStatusCode.OK, paidPayment)
+                    } else {
+                        call.respond(
+                            HttpStatusCode.Conflict,
+                            "El pago no pudo ser procesado. " +
+                                "Puede que ya haya sido pagado o no exista."
+                        )
+                    }
+                } catch (e: Exception) {
+                    call.respond(
+                        HttpStatusCode.InternalServerError,
+                        "Ocurrió un error: ${e.message}"
+                    )
                 }
             }
         }

@@ -3,6 +3,7 @@ package com.example.services
 import com.example.db.ContractsTable
 import com.example.db.PaymentRequestsTable
 import com.example.db.PaymentTable
+import com.example.db.StatusPayment
 import com.example.db.StatusRequestPayment
 import com.example.dto.EstimatedSalaryResponse
 import com.example.dto.NewPaymentRequest
@@ -16,8 +17,14 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.time.LocalDate
+import kotlinx.coroutines.runBlocking
 
-class PayrollService(private val contractService: ContractService, private val workLogService: WorkLogService) {
+class PayrollService(
+    private val contractService: ContractService,
+    private val workLogService: WorkLogService,
+    private val employeeService: EmployeeService,
+    private val notificationService: NotificationService,
+) {
     fun createPaymentRequest(request: NewPaymentRequest): PaymentRequestResponse {
         return transaction {
             val contractID =
@@ -71,6 +78,50 @@ class PayrollService(private val contractService: ContractService, private val w
                 it[reviewBy] = 1
             }
             newPayment?.let { rowToPaymentResponse(it) }
+        }
+    }
+
+    fun executePayment(paymentId: Int): PaymentResponse? {
+        return transaction {
+            val payment = PaymentTable
+                .select { PaymentTable.id eq paymentId }
+                .firstOrNull() ?: return@transaction null
+
+            if (payment[PaymentTable.status] != StatusPayment.EN_PROCESO) {
+                return@transaction null
+            }
+
+            PaymentTable.update({ PaymentTable.id eq paymentId }) {
+                it[status] = StatusPayment.PAGADO
+                it[paymentDate] = java.time.LocalDate.now()
+            }
+
+            val updatedPayment = PaymentTable.select { PaymentTable.id eq paymentId }.first()
+            val paymentResponse = rowToPaymentResponse(updatedPayment)
+
+            val requestId = updatedPayment[PaymentTable.requestId]
+            val contractId = PaymentRequestsTable
+                .slice(PaymentRequestsTable.contractId)
+                .select { PaymentRequestsTable.id eq requestId }
+                .first()[PaymentRequestsTable.contractId]
+
+            val employeeId = ContractsTable
+                .slice(ContractsTable.employeeId)
+                .select { ContractsTable.id eq contractId }
+                .first()[ContractsTable.employeeId]
+
+            val employee = employeeService.findById(employeeId)
+
+            if (employee != null && employee.telegramChatId != 0L) {
+                runBlocking {
+                    notificationService.sendPaymentNotification(
+                        chatId = employee.telegramChatId,
+                        amount = paymentResponse.total
+                    )
+                }
+            }
+
+            paymentResponse
         }
     }
 
