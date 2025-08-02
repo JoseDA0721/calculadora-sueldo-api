@@ -20,19 +20,6 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-tasks.jar {
-    manifest {
-        attributes["Main-Class"] = application.mainClass.get()
-    }
-
-    // Incluye todas las dependencias dentro del JAR (fat JAR)
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-    from({
-        configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) }
-    })
-}
-
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions.jvmTarget = "17"
 }
